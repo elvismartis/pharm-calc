@@ -44,7 +44,41 @@
 
     <!-- Main Content -->
     <main class="flex-grow max-w-6xl mx-auto px-4 py-8 w-full">
+        <!-- Instructions Section -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8 border-l-4 border-blue-600">
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <!-- Info Icon -->
+            <svg class="w-6 h-6 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            How to Use This Simulator
+        </h2>
         
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-600">
+            <div>
+                <h3 class="font-semibold text-gray-800 text-lg">1. Standard Calculations</h3>
+                <ul class="list-disc pl-5 mt-2 space-y-2 text-sm">
+                    <li>Select your desired concentration unit from the navigation tabs (e.g., Molarity, Normality, % w/v).</li>
+                    <li>Enter your known values (Mass, Volume, Molecular Weight) into the input fields.</li>
+                    <li>Click <strong>"Calculate"</strong> to view the final result and the step-by-step mathematical breakdown.</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="font-semibold text-gray-800 text-lg">2. Thermodynamic Conversions</h3>
+                <ul class="list-disc pl-5 mt-2 space-y-2 text-sm">
+                    <li>Navigate to the <strong>"Conversions"</strong> tab to interconvert between Molarity, Molality, and % w/w.</li>
+                    <li>Enter the <strong>Solution Density (g/mL)</strong>. This acts as the required thermodynamic bridge linking volume-dependent formulations to mass-dependent ones.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-6 bg-blue-50 p-4 rounded-lg text-sm text-blue-800 flex items-start">
+            <svg class="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+            <p><strong>Note for Students:</strong> Always verify your units! Ensure molecular weight is in <em>g/mol</em>, volumes are correctly scaled to <em>mL</em> or <em>L</em> depending on the formula, and mass is in <em>grams</em> before calculating.</p>
+        </div>
+    </div>
+    <!-- End Instructions Section -->
         <!-- Molarity Section -->
         <section id="tab-molarity" class="calc-section block">
             <div class="grid md:grid-cols-2 gap-8">
