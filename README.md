@@ -1,2 +1,2 @@
-# pharm-calc
+# Pharmaceutical Calculations
 Calculate solution strenghts like Molarity, Normality and more...
