@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmCalc: Solution Strength Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .tab-btn.active { border-bottom: 2px solid #0ea5e9; color: #0ea5e9; font-weight: 600; }
+        .input-group { margin-bottom: 1rem; }
+        .input-label { display: block; font-size: 0.875rem; font-weight: 500; color: #475569; margin-bottom: 0.25rem; }
+        .input-field { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 0.375rem; outline: none; transition: border-color 0.2s; }
+        .input-field:focus { border-color: #0ea5e9; box-shadow: 0 0 0 1px #0ea5e9; }
+        .result-box { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-sky-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                    PharmCalc
+                </h1>
+                <p class="text-sm text-slate-500">Pharmaceutical Concentration Simulator</p>
+            </div>
+        </div>
+        <!-- Navigation Tabs -->
+        <div class="max-w-6xl mx-auto px-4 flex space-x-6 overflow-x-auto whitespace-nowrap">
+            <button onclick="switchTab('molarity', event)" class="tab-btn active pb-3 px-1 text-slate-500 hover:text-slate-800 transition">Molarity (M)</button>
+            <button onclick="switchTab('normality', event)" class="tab-btn pb-3 px-1 text-slate-500 hover:text-slate-800 transition">Normality (N)</button>
+            <button onclick="switchTab('molality', event)" class="tab-btn pb-3 px-1 text-slate-500 hover:text-slate-800 transition">Molality (m)</button>
+            <button onclick="switchTab('percentages', event)" class="tab-btn pb-3 px-1 text-slate-500 hover:text-slate-800 transition">Percentages (%)</button>
+            <button onclick="switchTab('thermo', event)" class="tab-btn pb-3 px-1 text-slate-500 hover:text-slate-800 transition">Thermodynamic Conversions</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-6xl mx-auto px-4 py-8 w-full">
+        
+        <!-- Molarity Section -->
+        <section id="tab-molarity" class="calc-section block">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-semibold mb-4 text-slate-800">Calculate Molarity</h2>
+                    <p class="text-sm text-slate-500 mb-6">Moles of solute per liter of solution. Sensitive to temperature changes.</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Mass of Solute (g)</label>
+                        <input type="number" id="mol-mass" class="input-field calc-trigger" placeholder="e.g., 9.0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Molecular Weight (g/mol)</label>
+                        <input type="number" id="mol-mw" class="input-field calc-trigger" placeholder="e.g., 58.44" min="0.001">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Volume of Solution (mL)</label>
+                        <input type="number" id="mol-vol" class="input-field calc-trigger" placeholder="e.g., 1000" min="0.001">
+                    </div>
+                </div>
+                
+                <div class="flex flex-col space-y-6">
+                    <div class="result-box p-6 rounded-xl border border-sky-100 flex-grow flex flex-col justify-center items-center text-center">
+                        <h3 class="text-sm font-medium text-sky-700 uppercase tracking-wider mb-2">Calculated Molarity</h3>
+                        <div class="text-5xl font-bold text-sky-600 mb-2 break-all"><span id="mol-res">0.000</span> <span class="text-2xl text-sky-400">M</span></div>
+                        <p class="text-sm text-sky-600/80">moles / L</p>
+                    </div>
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-2">First Principles</h4>
+                        <div class="text-sm text-slate-600">
+                            $$ M = \frac{\text{Mass (g)} / \text{MW (g/mol)}}{\text{Volume (L)}} $$
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Normality Section -->
+        <section id="tab-normality" class="calc-section hidden">
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-semibold mb-4 text-slate-800">Calculate Normality</h2>
+                    <p class="text-sm text-slate-500 mb-6">Gram equivalent weight per liter. Used in pharmacopoeial titrations.</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Mass of Solute (g)</label>
+                        <input type="number" id="norm-mass" class="input-field calc-trigger" placeholder="e.g., 4.9">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Molecular Weight (g/mol)</label>
+                        <input type="number" id="norm-mw" class="input-field calc-trigger" placeholder="e.g., 98.08">
+                    </div>
+                    <div class="input-group flex gap-4">
+                        <div class="flex-1">
+                            <label class="input-label">Volume (mL)</label>
+                            <input type="number" id="norm-vol" class="input-field calc-trigger" placeholder="e.g., 500">
+                        </div>
+                        <div class="flex-1">
+                            <label class="input-label">n-factor (equivalents/mol)</label>
+                            <input type="number" id="norm-n" class="input-field calc-trigger" placeholder="e.g., 2">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col space-y-6">
+                    <div class="result-box p-6 rounded-xl border border-sky-100 flex-grow flex flex-col justify-center items-center text-center">
+                        <h3 class="text-sm font-medium text-sky-700 uppercase tracking-wider mb-2">Calculated Normality</h3>
+                        <div class="text-5xl font-bold text-sky-600 mb-2 break-all"><span id="norm-res">0.000</span> <span class="text-2xl text-sky-400">N</span></div>
+                        <p class="text-sm text-sky-600/80">equivalents / L</p>
+                    </div>
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-2">First Principles</h4>
+                        <div class="text-sm text-slate-600 overflow-x-auto">
+                            $$ N = \frac{\text{Mass (g)} / (\text{MW} / \text{n-factor})}{\text{Volume (L)}} $$
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Molality Section -->
+        <section id="tab-molality" class="calc-section hidden">
+             <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-xl font-semibold mb-4 text-slate-800">Calculate Molality</h2>
+                    <p class="text-sm text-slate-500 mb-6">Moles of solute per kg of solvent. Independent of temperature.</p>
+                    
+                    <div class="input-group">
+                        <label class="input-label">Mass of Solute (g)</label>
+                        <input type="number" id="molal-mass" class="input-field calc-trigger" placeholder="e.g., 50.0">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Molecular Weight (g/mol)</label>
+                        <input type="number" id="molal-mw" class="input-field calc-trigger" placeholder="e.g., 180.16">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Mass of Solvent (kg) <span class="text-xs text-slate-400 font-normal ml-1">Not solution!</span></label>
+                        <input type="number" id="molal-kg" class="input-field calc-trigger" placeholder="e.g., 1.0">
+                    </div>
+                </div>
+                
+                <div class="flex flex-col space-y-6">
+                    <div class="result-box p-6 rounded-xl border border-sky-100 flex-grow flex flex-col justify-center items-center text-center">
+                        <h3 class="text-sm font-medium text-sky-700 uppercase tracking-wider mb-2">Calculated Molality</h3>
+                        <div class="text-5xl font-bold text-sky-600 mb-2 break-all"><span id="molal-res">0.000</span> <span class="text-2xl text-sky-400">m</span></div>
+                        <p class="text-sm text-sky-600/80">moles / kg solvent</p>
+                    </div>
+                    <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+                        <h4 class="text-sm font-semibold text-slate-700 mb-2">First Principles</h4>
+                        <div class="text-sm text-slate-600">
+                            $$ m = \frac{\text{Mass (g)} / \text{MW (g/mol)}}{\text{Mass of solvent (kg)}} $$
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Percentages Section -->
+        <section id="tab-percentages" class="calc-section hidden">
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- % w/v -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                    <h2 class="text-lg font-semibold mb-2 text-slate-800">% w/v</h2>
+                    <p class="text-xs text-slate-500 mb-4 h-8">Grams solute / 100 mL solution. Used for syrups, IV bags.</p>
+                    <div class="input-group">
+                        <label class="input-label">Solute Mass (g)</label>
+                        <input type="number" id="wv-mass" class="input-field calc-trigger" placeholder="e.g., 5">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Solution Vol (mL)</label>
+                        <input type="number" id="wv-vol" class="input-field calc-trigger" placeholder="e.g., 500">
+                    </div>
+                    <div class="mt-auto pt-4 text-center">
+                        <div class="text-3xl font-bold text-sky-600"><span id="wv-res">0.00</span>%</div>
+                    </div>
+                </div>
+
+                <!-- % w/w -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                    <h2 class="text-lg font-semibold mb-2 text-slate-800">% w/w</h2>
+                    <p class="text-xs text-slate-500 mb-4 h-8">Grams solute / 100 g total. Used for ointments, creams.</p>
+                    <div class="input-group">
+                        <label class="input-label">Solute Mass (g)</label>
+                        <input type="number" id="ww-mass" class="input-field calc-trigger" placeholder="e.g., 1.0">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Total Mass (g)</label>
+                        <input type="number" id="ww-total" class="input-field calc-trigger" placeholder="e.g., 30.0">
+                    </div>
+                    <div class="mt-auto pt-4 text-center">
+                        <div class="text-3xl font-bold text-sky-600"><span id="ww-res">0.00</span>%</div>
+                    </div>
+                </div>
+
+                <!-- % v/v -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                    <h2 class="text-lg font-semibold mb-2 text-slate-800">% v/v</h2>
+                    <p class="text-xs text-slate-500 mb-4 h-8">mL solute / 100 mL total. Used for liquid extracts.</p>
+                    <div class="input-group">
+                        <label class="input-label">Solute Vol (mL)</label>
+                        <input type="number" id="vv-vol" class="input-field calc-trigger" placeholder="e.g., 70">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Total Vol (mL)</label>
+                        <input type="number" id="vv-total" class="input-field calc-trigger" placeholder="e.g., 500">
+                    </div>
+                    <div class="mt-auto pt-4 text-center">
+                        <div class="text-3xl font-bold text-sky-600"><span id="vv-res">0.00</span>%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Thermodynamic Conversions -->
+        <section id="tab-thermo" class="calc-section hidden">
+             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
+                <h2 class="text-xl font-semibold mb-2 text-slate-800">Density-Bridged Conversions</h2>
+                <p class="text-sm text-slate-500">Convert volume-dependent units to mass-dependent units using solution density.</p>
+             </div>
+
+             <div class="grid md:grid-cols-2 gap-8">
+                <!-- Molarity Base -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-emerald-200">
+                    <h3 class="font-medium text-emerald-800 mb-4 border-b border-emerald-100 pb-2">From Molarity (M) &rarr; Molality & %w/w</h3>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="input-group mb-0">
+                            <label class="input-label">Molarity (M)</label>
+                            <input type="number" id="conv-m1" class="input-field calc-trigger" placeholder="e.g., 1.2">
+                        </div>
+                        <div class="input-group mb-0">
+                            <label class="input-label">Solute MW (g/mol)</label>
+                            <input type="number" id="conv-mw1" class="input-field calc-trigger" placeholder="e.g., 58.44">
+                        </div>
+                        <div class="input-group mb-0 col-span-2">
+                            <label class="input-label">Solution Density (g/mL)</label>
+                            <input type="number" id="conv-d1" class="input-field calc-trigger" placeholder="e.g., 1.05">
+                        </div>
+                    </div>
+                    <div class="bg-emerald-50 rounded-lg p-4 grid grid-cols-2 gap-4 text-center">
+                        <div>
+                            <div class="text-xs font-semibold text-emerald-700 uppercase">Molality (m)</div>
+                            <div class="text-2xl font-bold text-emerald-600 mt-1" id="conv-res-molal1">0.00</div>
+                        </div>
+                        <div>
+                            <div class="text-xs font-semibold text-emerald-700 uppercase">% w/w</div>
+                            <div class="text-2xl font-bold text-emerald-600 mt-1" id="conv-res-ww1">0.00%</div>
+                        </div>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-3 text-center">
+                        $$ m = \frac{1000M}{1000\rho - M(MW)} $$ <br> $$ \%w/w = \frac{M(MW)}{10\rho} $$
+                    </div>
+                </div>
+
+                <!-- Molality Base -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-purple-200">
+                    <h3 class="font-medium text-purple-800 mb-4 border-b border-purple-100 pb-2">From Molality (m) &rarr; Molarity & %w/w</h3>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="input-group mb-0">
+                            <label class="input-label">Molality (m)</label>
+                            <input type="number" id="conv-m2" class="input-field calc-trigger" placeholder="e.g., 1.25">
+                        </div>
+                        <div class="input-group mb-0">
+                            <label class="input-label">Solute MW (g/mol)</label>
+                            <input type="number" id="conv-mw2" class="input-field calc-trigger" placeholder="e.g., 58.44">
+                        </div>
+                        <div class="input-group mb-0 col-span-2">
+                            <label class="input-label">Solution Density (g/mL)</label>
+                            <input type="number" id="conv-d2" class="input-field calc-trigger" placeholder="e.g., 1.05">
+                        </div>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-4 grid grid-cols-2 gap-4 text-center">
+                        <div>
+                            <div class="text-xs font-semibold text-purple-700 uppercase">Molarity (M)</div>
+                            <div class="text-2xl font-bold text-purple-600 mt-1" id="conv-res-molar2">0.00</div>
+                        </div>
+                        <div>
+                            <div class="text-xs font-semibold text-purple-700 uppercase">% w/w</div>
+                            <div class="text-2xl font-bold text-purple-600 mt-1" id="conv-res-ww2">0.00%</div>
+                        </div>
+                    </div>
+                     <div class="text-[10px] text-slate-400 mt-3 text-center">
+                        $$ M = \frac{1000m\rho}{1000 + m(MW)} $$ <br> $$ \%w/w = \frac{m(MW)}{1000 + m(MW)} \times 100 $$
+                    </div>
+                </div>
+             </div>
+        </section>
+    </main>
+
+    <footer class="mt-auto bg-slate-900 text-slate-400 py-6 text-center text-sm">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>For educational pharmaceutical simulation only. Ensure units match prior to rigorous calculation.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab Switching Logic
+        function switchTab(tabId, event) {
+            // Update tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            } else if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            // Update sections
+            document.querySelectorAll('.calc-section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+        }
+
+        // --- CALCULATION LOGIC ---
+        
+        // Helper to format results safely
+        const formatRes = (val, decimals = 4) => {
+            if (isNaN(val) || !isFinite(val) || val < 0) return (0).toFixed(decimals);
+            return val.toFixed(decimals);
+        }
+
+        // Attach listeners to all inputs
+        document.querySelectorAll('.calc-trigger').forEach(input => {
+            input.addEventListener('input', runCalculations);
+        });
+
+        function runCalculations() {
+            // 1. Molarity
+            const molMass = parseFloat(document.getElementById('mol-mass').value);
+            const molMW = parseFloat(document.getElementById('mol-mw').value);
+            const molVol = parseFloat(document.getElementById('mol-vol').value);
+            let molarity = 0;
+            if (molMass > 0 && molMW > 0 && molVol > 0) {
+                molarity = (molMass / molMW) / (molVol / 1000);
+            }
+            document.getElementById('mol-res').innerText = formatRes(molarity, 3);
+
+            // 2. Normality
+            const normMass = parseFloat(document.getElementById('norm-mass').value);
+            const normMW = parseFloat(document.getElementById('norm-mw').value);
+            const normVol = parseFloat(document.getElementById('norm-vol').value);
+            const normN = parseFloat(document.getElementById('norm-n').value);
+            let normality = 0;
+            if (normMass > 0 && normMW > 0 && normVol > 0 && normN > 0) {
+                const eqWeight = normMW / normN;
+                normality = (normMass / eqWeight) / (normVol / 1000);
+            }
+            document.getElementById('norm-res').innerText = formatRes(normality, 3);
+
+            // 3. Molality
+            const molalMass = parseFloat(document.getElementById('molal-mass').value);
+            const molalMW = parseFloat(document.getElementById('molal-mw').value);
+            const molalKg = parseFloat(document.getElementById('molal-kg').value);
+            let molality = 0;
+            if (molalMass > 0 && molalMW > 0 && molalKg > 0) {
+                molality = (molalMass / molalMW) / molalKg;
+            }
+            document.getElementById('molal-res').innerText = formatRes(molality, 3);
+
+            // 4. Percentages
+            const wvMass = parseFloat(document.getElementById('wv-mass').value);
+            const wvVol = parseFloat(document.getElementById('wv-vol').value);
+            let wv = (wvMass > 0 && wvVol > 0) ? (wvMass / wvVol) * 100 : 0;
+            document.getElementById('wv-res').innerText = formatRes(wv, 2);
+
+            const wwMass = parseFloat(document.getElementById('ww-mass').value);
+            const wwTotal = parseFloat(document.getElementById('ww-total').value);
+            let ww = (wwMass > 0 && wwTotal > 0) ? (wwMass / wwTotal) * 100 : 0;
+            document.getElementById('ww-res').innerText = formatRes(ww, 2);
+
+            const vvVol = parseFloat(document.getElementById('vv-vol').value);
+            const vvTotal = parseFloat(document.getElementById('vv-total').value);
+            let vv = (vvVol > 0 && vvTotal > 0) ? (vvVol / vvTotal) * 100 : 0;
+            document.getElementById('vv-res').innerText = formatRes(vv, 2);
+
+            // 5. Thermodynamic Conversions: Molarity Base
+            const cM1 = parseFloat(document.getElementById('conv-m1').value);
+            const cMW1 = parseFloat(document.getElementById('conv-mw1').value);
+            const cD1 = parseFloat(document.getElementById('conv-d1').value);
+            
+            if (cM1 > 0 && cMW1 > 0 && cD1 > 0) {
+                const denom = (1000 * cD1) - (cM1 * cMW1);
+                const convMolal1 = denom > 0 ? (1000 * cM1) / denom : 0;
+                const convWW1 = (cM1 * cMW1) / (10 * cD1);
+                
+                document.getElementById('conv-res-molal1').innerText = formatRes(convMolal1, 3);
+                document.getElementById('conv-res-ww1').innerText = formatRes(convWW1, 2) + '%';
+            } else {
+                document.getElementById('conv-res-molal1').innerText = "0.00";
+                document.getElementById('conv-res-ww1').innerText = "0.00%";
+            }
+
+            // 6. Thermodynamic Conversions: Molality Base
+            const cm2 = parseFloat(document.getElementById('conv-m2').value);
+            const cMW2 = parseFloat(document.getElementById('conv-mw2').value);
+            const cD2 = parseFloat(document.getElementById('conv-d2').value);
+
+            if (cm2 > 0 && cMW2 > 0) { // Density only strictly needed for Molarity
+                const convWW2 = (cm2 * cMW2) / (1000 + (cm2 * cMW2)) * 100;
+                document.getElementById('conv-res-ww2').innerText = formatRes(convWW2, 2) + '%';
+                
+                if (cD2 > 0) {
+                    const convMolar2 = (1000 * cm2 * cD2) / (1000 + (cm2 * cMW2));
+                    document.getElementById('conv-res-molar2').innerText = formatRes(convMolar2, 3);
+                } else {
+                    document.getElementById('conv-res-molar2').innerText = "0.00";
+                }
+            } else {
+                document.getElementById('conv-res-molar2').innerText = "0.00";
+                document.getElementById('conv-res-ww2').innerText = "0.00%";
+            }
+        }
+        
+        // Render MathJax equations on load
+        window.addEventListener('load', () => {
+            try {
+                if (window.MathJax && window.MathJax.Hub) {
+                    MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                }
+            } catch (e) {
+                console.warn("MathJax formatting could not be loaded:", e);
+            }
+        });
+    </script>
+</body>
+</html>
