@@ -1,6 +1,8 @@
 # Pharmaceutical Calculations
 ## PharmCalc: Solution Strength Simulator
 
+[click to Access](https://elvismartis.github.io/pharm-calc/)
+
 Welcome to PharmCalc, an interactive educational dashboard designed for pharmacy students, chemists, and formulation scientists. This tool bridges the gap between theoretical calculations and practical benchtop formulation by simulating dynamic concentration parameters in real-time.
 
 Whether you are preparing a standard saline drip, compounding an ointment, or exploring the thermodynamic shifts between volume and mass-based concentrations, this dashboard allows you to visualize the math instantly.
